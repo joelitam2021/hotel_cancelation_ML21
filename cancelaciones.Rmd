@@ -115,4 +115,131 @@ analisis_cancelaciones_ord(sub_cancelados[,i],nombres[i])
 ```
 
 
+```{r}
+sub_cancel <- subset(data, is_canceled == "cancelado")
+```
+
+
+
+
+```{r}
+
+contry_null <- subset(sub_cancel, country == "NULL")
+nuLL_agen_contry <- subset(contry_null, agent == "NULL")
+```
+
+
+```{r}
+a <- table(contry_null$agent)
+
+a
+b <- prop.table(a)
+
+hist(a)
+```
+
+```{r}
+agen_cont <- table(contry_null$agent)
+```
+
+```{r}
+table(data$agent)
+```
+
+
+```{r}
+ggplot(data = train, mapping = aes(x = agent, y = country)  ) +
+  geom_boxplot()
+#  geom_point()
+```
+
+```{r}
+subset(data, company == "NULL")
+```
+
+```{r}
+subset(data, agent == "NULL")
+```
+
+```{r}
+agen_nul <-   subset(data, agent != "NULL")
+aux <- prop.table(table(agen_nul$agent))
+aux
+sample(agen_nul$agent, 1, prob = aux)
+```
+```{r}
+#install.packages("tidyverse")
+library(lubridate)
+```
+
+
+
+```{r}
+fecha = ymd(paste(data$arrival_date_year,data$arrival_date_month,data$arrival_date_day_of_month))
+
+data <- data %>% mutate(dia_sem = wday(fecha))
+data <- data %>% mutate(dia_sem = if_else(dia_sem==1, "domingo", as.character(dia_sem)))
+data <- data %>% mutate(dia_sem = if_else(dia_sem==2, "lunes", as.character(dia_sem)))
+data <- data %>% mutate(dia_sem = if_else(dia_sem==3, "martes", as.character(dia_sem)))
+data <- data %>% mutate(dia_sem = if_else(dia_sem==4, "miercoles", as.character(dia_sem)))
+data <- data %>% mutate(dia_sem = if_else(dia_sem==5, "jueves", as.character(dia_sem)))
+data <- data %>% mutate(dia_sem = if_else(dia_sem==6, "viernes", as.character(dia_sem)))
+data <- data %>% mutate(dia_sem = if_else(dia_sem==7, "sabado", as.character(dia_sem)))
+```
+
+
+
+```{r, echo = FALSE}
+pascua <- ymd(as.character(timeDate::Easter(2015:2017)))
+pascua_m1 <- ymd(as.character(timeDate::Easter(2015:2017))) - days(1)
+pascua_m2 <- ymd(as.character(timeDate::Easter(2015:2017))) - days(2)
+pascua_m3 <- ymd(as.character(timeDate::Easter(2015:2017))) - days(3)
+pascua_m4 <- ymd(as.character(timeDate::Easter(2015:2017))) - days(4)
+pascua_m5 <- ymd(as.character(timeDate::Easter(2015:2017))) - days(5)
+pascua_m6 <- ymd(as.character(timeDate::Easter(2015:2017))) - days(6)
+
+data <- data %>% mutate(fecha = fecha)
+data$pascua <- as.numeric(data$fecha %in% pascua)
+data$pascua_m1 <- as.numeric(data$fecha %in% pascua_m1)
+data$pascua_m2 <- as.numeric(data$fecha %in% pascua_m2)
+data$pascua_m3 <- as.numeric(data$fecha %in% pascua_m3)
+data$pascua_m4 <- as.numeric(data$fecha %in% pascua_m4)
+data$pascua_m5 <- as.numeric(data$fecha %in% pascua_m5)
+data$pascua_m6 <- as.numeric(data$fecha %in% pascua_m6)
+data<- data %>% mutate(semana_santa = pascua + pascua_m1 +
+                                      pascua_m2 + pascua_m3 + pascua_m4 + pascua_m5 + 
+                         pascua_m6)
+```
+
+
+```{r}
+cancelados <- subset(data, is_canceled == "cancelado")
+```
+
+
+```{r}
+agrupados <- cancelados %>% group_by(fecha) %>% count(is_canceled)
+```
+
+
+
+```{r}
+ggplot(agrupados, aes(x = fecha, y=n))+
+geom_point() +
+  geom_smooth(method = "loess", span = 0.3, method.args = list(degree = 1), se = FALSE)
+```
+
+
+```{r}
+mod_1 <- loess(n ~ as.numeric(fecha), data = agrupados, span = 0.2, degree = 1)
+datos_dia <- agrupados %>% mutate(ajuste_1 = fitted(mod_1)) %>%
+    mutate(res_1 = n - ajuste_1)
+```
+
+
+
+
+
+
+
 
